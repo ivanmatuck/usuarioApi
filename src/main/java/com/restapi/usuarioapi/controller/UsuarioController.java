@@ -41,8 +41,8 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{cpf}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByCpf(@PathVariable Long cpf) throws Exception {
-        usuarioService.deleteByCpf(cpf);
+    @ResponseStatus(HttpStatus.OK)
+    public MessageResponseDTO deleteByCpf(@PathVariable Long cpf) throws Exception {
+        return usuarioService.deleteByCpf(cpf);
     }
 }

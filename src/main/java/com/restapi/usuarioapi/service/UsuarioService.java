@@ -19,8 +19,6 @@ import java.util.Optional;
 @Service
 public class UsuarioService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UsuarioService.class);
-
     @Autowired
     private UsuarioRepository usuarioRepository;
 
@@ -30,7 +28,7 @@ public class UsuarioService {
     @Transactional
     public MessageResponseDTO createUsuario(UsuarioDTO usuarioDTO) throws Exception {
         if (this.usuarioRepository.findUsuarioByCpf(usuarioDTO.getCpf()).isPresent()) {
-            return new MessageResponseDTO("Já existe um usuário com este CPF: ", (usuarioDTO.getCpf()));
+            return new MessageResponseDTO("Já existe um usuário com este CPF");
         } else {
             List<ContatosUsuario> contatosUsuariosList = new ArrayList<>();
             Usuario usuario = new Usuario(usuarioDTO.getName(), usuarioDTO.getCpf(), contatosUsuariosList);
@@ -44,7 +42,7 @@ public class UsuarioService {
                 });
                 usuario.setContatosUsuarios(contatosUsuariosList);
                 this.usuarioRepository.save(usuario);
-                return new MessageResponseDTO("Contato criado com sucesso.");
+                return new MessageResponseDTO("Usuário criado com sucesso.");
             } catch (Exception e) {
                 throw new Exception("Erro ao salvar usuário", e.getCause());
             }
@@ -100,7 +98,7 @@ public class UsuarioService {
                 });
                 usuario.setContatosUsuarios(contatosUsuariosNovos);
                 this.usuarioRepository.save(usuario);
-            } return new MessageResponseDTO("Contatos(s) atualizado com sucesso.");
+            } return new MessageResponseDTO("Contatos atualizados com sucesso.");
         } catch (Exception e) {
             throw new Exception("Erro ao atualizar usuário", e.getCause());
         }
@@ -108,7 +106,7 @@ public class UsuarioService {
 
 
     @Transactional
-    public void deleteByCpf(Long cpf) throws Exception {
+    public MessageResponseDTO deleteByCpf(Long cpf) throws Exception {
         verifyIfExists(cpf);
         try {
             Optional<Usuario> usuario = this.usuarioRepository.findUsuarioByCpf(cpf);
@@ -117,8 +115,8 @@ public class UsuarioService {
                 contatosUsuario.forEach(contatos -> {
                     this.contatosUsuarioRepository.deleteById(contatos.getId());
                 });
-            }
-            this.usuarioRepository.deleteById(usuario.get().getId());
+                this.usuarioRepository.deleteById(usuario.get().getId());
+            } return new MessageResponseDTO("Usuario apagado com sucesso.");
         } catch (Exception e) {
             throw new Exception("Erro ao deletar usuários com o CPF: " + cpf, e.getCause());
         }

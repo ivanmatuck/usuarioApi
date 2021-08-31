@@ -9,9 +9,54 @@ d) Deletar usuario pelo documento (metodo del)
 a) Fornecer a caminho do github.
 b) criar um arquivo readme com as instruções da api.
 
-listAll() e createUsuario()
-http://localhost:8080/api/v1/people
 
-findByCpf(), updateByCpf(), deleteByCpf(), 
-http://localhost:8080/api/v1/people/{cpf}
+Adicionar Usuario com Contatos:
+
+POST http://localhost:8080/api/v1/people
+
+Payload Request: JSON de Usuário com Array de Contatos
+{
+"name": "Teste1",
+"cpf": 14888215809,
+"contatosUsuarios":
+    [{
+    "email": "novo1@hotmail.com",
+    "telefone": "(11)94221-9383",
+    "isContatoPrincipal": "true"
+    },
+    {
+    "email": "novo2@hotmail.com",
+    "telefone": "(11)94223-9393",
+    "isContatoPrincipal": "false"
+    }]
+}
+
+
+Editar contatos do usuário por CPF (apaga os salvos e insere novos)
+
+PUT http://localhost:8080/api/v1/people{cpf}
+
+Payload Request: JSON de Array de contatos
+{
+    [{
+    "email": "editar1@hotmail.com",
+    "telefone": "(11)97891-9383",
+    "isContatoPrincipal": "false"
+    },
+    {
+    "email": "editar2@hotmail.com",
+    "telefone": "(11)99223-9393",
+    "isContatoPrincipal": "true"
+    }]
+}
+
+
+Deletar usuarios por CPF
+DELETE http://localhost:8080/api/v1/people{cpf}
+
+Busca todos os usuários salvos
+GET http://localhost:8080/api/v1/people
+
+Busca Usuário por CPF
+GET http://localhost:8080/api/v1/people/{cpf}
 

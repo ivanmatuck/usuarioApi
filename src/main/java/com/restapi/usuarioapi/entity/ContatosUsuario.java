@@ -13,6 +13,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 public class ContatosUsuario {
 
+    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,6 +23,7 @@ public class ContatosUsuario {
     @JoinColumn(name = "idUsuario", referencedColumnName = "id", insertable=false, updatable = false)
     private Usuario usuario;
 
+    @JsonIgnore
     @Column(nullable = false)
     private Long idUsuario;
 
