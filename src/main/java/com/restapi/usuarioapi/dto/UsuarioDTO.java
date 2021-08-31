@@ -1,39 +1,32 @@
 package com.restapi.usuarioapi.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.restapi.usuarioapi.entity.ContatosUsuario;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.br.CPF;
 
-import javax.persistence.PrePersist;
-import javax.validation.constraints.*;
-import java.time.LocalDate;
+import javax.persistence.Lob;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import java.util.List;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class UsuarioDTO {
 
-    private Long id;
-
-    @NotEmpty
     @Size(min = 2, max = 100)
     private String name;
 
-    @NotEmpty
-    @CPF
-    private String cpf;
+    private Long cpf;
 
-    @NotEmpty
-    @Email
-    private String email;
+    private List<ContatosUsuario> contatosUsuarios;
 
-    @NotEmpty
-    @Size(min = 8, max = 12)
-    private String telefone;
+    public UsuarioDTO(String name, Long cpf, List<ContatosUsuario> contatosUsuarios) {
+        this.name = name;
+        this.cpf = cpf;
+        this.contatosUsuarios = contatosUsuarios;
+    }
 
-    private boolean isContatoPrincipal;
 }

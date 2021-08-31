@@ -1,13 +1,17 @@
 package com.restapi.usuarioapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.br.CPF;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.time.LocalDate;
+import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -16,23 +20,25 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Usuario {
 
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String cpf;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
     @Column(nullable = false)
-    @Size(min = 8, max = 12)
-    private String telefone;
+    private Long cpf;
 
-    @Column
-    private Boolean isContatoPrincipal;
+    @OneToMany(mappedBy = "usuario", targetEntity = ContatosUsuario.class, cascade = CascadeType.ALL)
+    private List<ContatosUsuario> contatosUsuarios = new ArrayList<>();
+
+    public Usuario(String name, Long cpf, List<ContatosUsuario> contatosUsuarios) {
+        this.name = name;
+        this.cpf = cpf;
+        this.contatosUsuarios = contatosUsuarios;
+    }
 }

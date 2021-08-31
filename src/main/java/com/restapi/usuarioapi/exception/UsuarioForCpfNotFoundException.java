@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class UsuarioForCpfNotFoundException extends Exception {
-    public UsuarioForCpfNotFoundException(String cpf) {
+    public UsuarioForCpfNotFoundException(Long cpf) {
         super("Usuario not found with ID " + cpf);
     }
 }

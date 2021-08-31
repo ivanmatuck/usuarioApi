@@ -2,7 +2,6 @@ package com.restapi.usuarioapi.controller;
 
 import com.restapi.usuarioapi.dto.MessageResponseDTO;
 import com.restapi.usuarioapi.dto.UsuarioDTO;
-import com.restapi.usuarioapi.exception.UsuarioNotFoundException;
 import com.restapi.usuarioapi.service.UsuarioService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,30 +20,29 @@ public class UsuarioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public MessageResponseDTO createUsuario(@RequestBody @Valid UsuarioDTO usuarioDTO){
+    public MessageResponseDTO createUsuario(@RequestBody @Valid UsuarioDTO usuarioDTO) throws Exception {
         return usuarioService.createUsuario(usuarioDTO);
     }
 
     @GetMapping
-    public List<UsuarioDTO> listAll(){
+    public List<UsuarioDTO> listAll() throws Exception {
         return usuarioService.listAll();
     }
 
     @GetMapping("/{cpf}")
-    public UsuarioDTO findByCpf(@PathVariable String cpf) throws UsuarioNotFoundException {
+    public List<UsuarioDTO> findByCpf(@PathVariable Long cpf) throws Exception {
         return usuarioService.findByCPF(cpf);
     }
 
     @PutMapping("/{cpf}")
-    public MessageResponseDTO updateByCpf(@PathVariable String cpf,
-                                         @RequestBody @Valid UsuarioDTO usuarioDTO)
-                                        throws UsuarioNotFoundException {
+    public MessageResponseDTO updateByCpf(@PathVariable Long cpf,
+                                         @RequestBody @Valid UsuarioDTO usuarioDTO) throws Exception {
         return usuarioService.updateByCpf(cpf, usuarioDTO);
     }
 
     @DeleteMapping("/{cpf}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByCpf(@PathVariable String cpf) throws UsuarioNotFoundException {
+    public void deleteByCpf(@PathVariable Long cpf) throws Exception {
         usuarioService.deleteByCpf(cpf);
     }
 }

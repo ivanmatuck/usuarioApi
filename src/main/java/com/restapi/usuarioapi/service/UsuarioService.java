@@ -2,77 +2,137 @@ package com.restapi.usuarioapi.service;
 
 import com.restapi.usuarioapi.dto.MessageResponseDTO;
 import com.restapi.usuarioapi.dto.UsuarioDTO;
+import com.restapi.usuarioapi.entity.ContatosUsuario;
 import com.restapi.usuarioapi.entity.Usuario;
-import com.restapi.usuarioapi.exception.UsuarioForCpfNotFoundException;
-import com.restapi.usuarioapi.exception.UsuarioNotFoundException;
-import com.restapi.usuarioapi.mapper.UsuarioMapper;
+import com.restapi.usuarioapi.repository.ContatosUsuarioRepository;
 import com.restapi.usuarioapi.repository.UsuarioRepository;
-import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
-@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class UsuarioService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UsuarioService.class);
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
-    private final UsuarioMapper usuarioMapper = UsuarioMapper.INSTANCE;
 
-    public MessageResponseDTO createUsuario(UsuarioDTO usuarioDTO){
-            Usuario usuarioToSave = usuarioMapper.toModel(usuarioDTO);
-            Usuario savedUsuario = usuarioRepository.save(usuarioToSave);
+    @Autowired
+    private ContatosUsuarioRepository contatosUsuarioRepository;
 
-        return createMessageResponse(savedUsuario.getId(), "Created usuario with ID ");
-    }
-
-    public List<UsuarioDTO> listAll() {
-        List<Usuario> allPeople = usuarioRepository.findAll();
-        return allPeople.stream()
-                .map(usuarioMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    public UsuarioDTO findByCPF(String cpf) throws UsuarioNotFoundException {
-        Usuario usuario = verifyIfExists(cpf);
-            return usuarioMapper.toDTO(usuario);
-
-    }
-
-    public MessageResponseDTO updateByCpf(String cpf, UsuarioDTO usuarioDTO) throws UsuarioNotFoundException {
-        verifyIfExists(cpf);
-
-        Usuario usuarioToUpdate = usuarioMapper.toModel(usuarioDTO);
-
-        Usuario updatedUsuario = usuarioRepository.save(usuarioToUpdate);
-        return createMessageResponseString(updatedUsuario.getCpf(), "Updated usuario with ID ");
+    @Transactional
+    public MessageResponseDTO createUsuario(UsuarioDTO usuarioDTO) throws Exception {
+        if (this.usuarioRepository.findUsuarioByCpf(usuarioDTO.getCpf()).isPresent()) {
+            return new MessageResponseDTO("Já existe um usuário com este CPF: ", (usuarioDTO.getCpf()));
+        } else {
+            List<ContatosUsuario> contatosUsuariosList = new ArrayList<>();
+            Usuario usuario = new Usuario(usuarioDTO.getName(), usuarioDTO.getCpf(), contatosUsuariosList);
+            this.usuarioRepository.save(usuario);
+            try {
+                usuarioDTO.getContatosUsuarios().forEach(allContatosUsuario -> {
+                    ContatosUsuario contatosUsuario = new ContatosUsuario(usuario.getId(), allContatosUsuario.getEmail(),
+                            allContatosUsuario.getTelefone(), allContatosUsuario.getIsContatoPrincipal());
+                    this.contatosUsuarioRepository.save(contatosUsuario);
+                    contatosUsuariosList.add(contatosUsuario);
+                });
+                usuario.setContatosUsuarios(contatosUsuariosList);
+                this.usuarioRepository.save(usuario);
+                return new MessageResponseDTO("Contato criado com sucesso.");
+            } catch (Exception e) {
+                throw new Exception("Erro ao salvar usuário", e.getCause());
+            }
+        }
     }
 
     @Transactional
-    public void deleteByCpf(String cpf) throws UsuarioNotFoundException {
+    public List<UsuarioDTO> listAll() throws Exception {
+        List<UsuarioDTO> usuarioDTOList = new ArrayList<>();
+        try {
+            List<Usuario> allUsuarios = this.usuarioRepository.findAll();
+            allUsuarios.forEach(usuario -> {
+                List<ContatosUsuario> contatosUsuario =
+                        this.contatosUsuarioRepository.findContatosUsuarioByIdUsuario(usuario.getId());
+                UsuarioDTO usuarioDTO = new UsuarioDTO(usuario.getName(), usuario.getCpf(), contatosUsuario);
+                usuarioDTOList.add(usuarioDTO);
+            }); return usuarioDTOList;
+        } catch (Exception e) {
+            throw new Exception("Erro ao buscar usuários.", e.getCause());
+        }
+    }
+
+
+    @Transactional
+    public List<UsuarioDTO> findByCPF(Long cpf) throws Exception {
         verifyIfExists(cpf);
-        usuarioRepository.deleteUsuarioByCpf(cpf);
+        List<UsuarioDTO> usuarioDTOList = new ArrayList<>();
+        try {
+            Optional<Usuario> usuario = this.usuarioRepository.findUsuarioByCpf(cpf);
+            List<ContatosUsuario> contatosUsuario = this.contatosUsuarioRepository.findContatosUsuarioByIdUsuario(usuario.get().getId());
+            usuarioDTOList.add(new UsuarioDTO(usuario.get().getName(), usuario.get().getCpf(), contatosUsuario));
+            return usuarioDTOList;
+        } catch (Exception e) {
+            throw new Exception("Erro ao buscar usuários com o CPF: " + cpf, e.getCause());
+        }
     }
 
-    private Usuario verifyIfExists(String cpf) throws UsuarioNotFoundException{
-        return usuarioRepository.findUsuarioByCpf(cpf)
-                .orElseThrow(() ->new UsuarioNotFoundException(cpf));
+    @Transactional
+    public MessageResponseDTO updateByCpf(Long cpf, UsuarioDTO usuarioDTO) throws Exception {
+        verifyIfExists(cpf);
+        List<ContatosUsuario> contatosUsuariosNovos = new ArrayList<>();
+        try {
+            Optional<Usuario> usuarioOptional = this.usuarioRepository.findUsuarioByCpf(usuarioDTO.getCpf());
+            if (usuarioOptional.isPresent()) {
+                Usuario usuario = usuarioOptional.get();
+                List<ContatosUsuario> contatosUsuariosList = this.contatosUsuarioRepository.findContatosUsuarioByIdUsuario(usuario.getId());
+                this.contatosUsuarioRepository.deleteAll(contatosUsuariosList);
+                usuarioDTO.getContatosUsuarios().forEach(allContatosUsuario -> {
+                    ContatosUsuario contatosUsuario = new ContatosUsuario(usuario.getId(), allContatosUsuario.getEmail(),
+                            allContatosUsuario.getTelefone(), allContatosUsuario.getIsContatoPrincipal());
+                    this.contatosUsuarioRepository.save(contatosUsuario);
+                    contatosUsuariosNovos.add(contatosUsuario);
+                });
+                usuario.setContatosUsuarios(contatosUsuariosNovos);
+                this.usuarioRepository.save(usuario);
+            } return new MessageResponseDTO("Contatos(s) atualizado com sucesso.");
+        } catch (Exception e) {
+            throw new Exception("Erro ao atualizar usuário", e.getCause());
+        }
     }
 
-    private MessageResponseDTO createMessageResponse(Long id, String message) {
-        return MessageResponseDTO
-                .builder()
-                .message(message + id)
-                .build();
+
+    @Transactional
+    public void deleteByCpf(Long cpf) throws Exception {
+        verifyIfExists(cpf);
+        try {
+            Optional<Usuario> usuario = this.usuarioRepository.findUsuarioByCpf(cpf);
+            if (usuario.isPresent()) {
+                List<ContatosUsuario> contatosUsuario = this.contatosUsuarioRepository.findContatosUsuarioByIdUsuario(usuario.get().getId());
+                contatosUsuario.forEach(contatos -> {
+                    this.contatosUsuarioRepository.deleteById(contatos.getId());
+                });
+            }
+            this.usuarioRepository.deleteById(usuario.get().getId());
+        } catch (Exception e) {
+            throw new Exception("Erro ao deletar usuários com o CPF: " + cpf, e.getCause());
+        }
     }
 
-    private MessageResponseDTO createMessageResponseString(String cpf, String message) {
-        return MessageResponseDTO
-                .builder()
-                .message(message + cpf)
-                .build();
+    @Transactional
+    void verifyIfExists(Long cpf) throws Exception {
+        try {
+            this.usuarioRepository.findUsuarioByCpf(cpf);
+        } catch (Exception e) {
+            throw new Exception("Usuário não encontrado para este CPF: " + cpf, e.getCause());
+        }
     }
 }
+
+
+
