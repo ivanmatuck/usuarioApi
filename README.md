@@ -1,4 +1,7 @@
-API na linguagem (JAVA) para gerência de usuários. 
+Requisitos:
+
+API na linguagem Java, com framework Springboot e banco de dados H2 para gerência de usuários. 
+
 Tem as seguintes rotas:                                                                           
 a) Cadastro de usuario com nome (texto), documento (numerico) e um array de contatos contendo email (texto), telefone (numerico), flag principal (bit) (metodo post)
 Obs: a flag principal é um campo bit que determina qual o contato principal
@@ -9,6 +12,8 @@ d) Deletar usuario pelo documento (metodo del)
 a) Fornecer a caminho do github.
 b) criar um arquivo readme com as instruções da api.
 
+Link publico para collection de testes POSTMAN:
+https://www.getpostman.com/collections/25c653cddfbd16eb243f
 
 Adicionar Usuario com Contatos:
 
@@ -38,18 +43,18 @@ PUT http://localhost:8080/api/v1/people{cpf}
 
 Payload Request: JSON de Array de contatos
 {
+"contatosUsuarios":
     [{
-    "email": "editar1@hotmail.com",
-    "telefone": "(11)97891-9383",
-    "isContatoPrincipal": "false"
+    "email": "novo1@hotmail.com",
+    "telefone": "(11)94221-9383",
+    "isContatoPrincipal": "true"
     },
     {
-    "email": "editar2@hotmail.com",
-    "telefone": "(11)99223-9393",
-    "isContatoPrincipal": "true"
+    "email": "novo2@hotmail.com",
+    "telefone": "(11)94223-9393",
+    "isContatoPrincipal": "false"
     }]
 }
-
 
 Deletar usuarios por CPF
 DELETE http://localhost:8080/api/v1/people{cpf}

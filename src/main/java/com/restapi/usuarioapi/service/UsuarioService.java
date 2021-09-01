@@ -85,7 +85,7 @@ public class UsuarioService {
         verifyIfExists(cpf);
         List<ContatosUsuario> contatosUsuariosNovos = new ArrayList<>();
         try {
-            Optional<Usuario> usuarioOptional = this.usuarioRepository.findUsuarioByCpf(usuarioDTO.getCpf());
+            Optional<Usuario> usuarioOptional = this.usuarioRepository.findUsuarioByCpf(cpf);
             if (usuarioOptional.isPresent()) {
                 Usuario usuario = usuarioOptional.get();
                 List<ContatosUsuario> contatosUsuariosList = this.contatosUsuarioRepository.findContatosUsuarioByIdUsuario(usuario.getId());
